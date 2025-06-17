@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
-    "url": "https://github.com/developing14/theroomtaurantV1.git"
+    "url": "https://github.com/developing14/theroomtaurantv2.git"
   },
   "scripts": {
     "build": "nest build",
