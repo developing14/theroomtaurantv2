@@ -1,5 +1,5 @@
 // Commons
-import { Body, Controller, Get, Post, Req, Res, UseGuards} from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, NotFoundException, Post, Req, Res, UnauthorizedException, UseGuards} from '@nestjs/common';
 import { Response } from 'express';
 
 // Dependencies
@@ -7,7 +7,7 @@ import { AccountService } from 'src/account/account.service';
 import { AuthService } from './auth.service';
 
 // Responses
-import { errorResponse, successResponse, successWithDataResponse } from 'src/common/helpers/response.helper';
+import { successResponse, successWithDataResponse } from 'src/common/helpers/response.helper';
 
 // DTOs
 import { AuthDTO, loginPayloadDTO } from './dto/auth.dto';
@@ -24,10 +24,10 @@ export class AuthController {
 
         // Validate user's login information, validate() return the account if validated or null if not
         const validate = await this.authService.validate(authPayload)
-        if (!validate) return errorResponse('validate', 400)
+        if (!validate) throw new UnauthorizedException('Validation fail')
 
         const account = await this.accountService.getAccountByEmail(authPayload.email)
-        if (!account) return errorResponse('AccountNotFound', 404)
+        if (!account) throw new NotFoundException('Account is not found')
 
         let loginPayload:loginPayloadDTO = {
             _id: account._id,

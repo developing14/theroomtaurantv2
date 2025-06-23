@@ -1,3 +1,5 @@
+import { Entity } from "typeorm";
+
 export class ResponseDto<entityType> {
   statusCode: number;
   message: string | any ; // String for custom message, any for Error object in try-catch scope

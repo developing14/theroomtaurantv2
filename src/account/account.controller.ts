@@ -1,5 +1,5 @@
 // Commons
-import { Controller, Get, Post, Patch, Delete, Inject, Body } from "@nestjs/common";
+import { Controller, Get, Post, Patch, Delete, Inject, Body, BadRequestException } from "@nestjs/common";
 import { ObjectId } from "typeorm";
 
 // Cache
@@ -24,7 +24,7 @@ export class AccountController {
     @Post('account')
     async createAccount(@Body() payload:AccountDTO): Promise<ResponseDto<AccountDTO | null > >{
 
-        if (await this.accountService.getAccountByEmail(payload.email)) return errorResponse('Email is used', 401)
+        if (await this.accountService.getAccountByEmail(payload.email)) throw new BadRequestException('Invalid input: Email is used')
 
         try {
             this.accountService.createAccount(payload)
@@ -32,7 +32,7 @@ export class AccountController {
             payload.hashed = ''
 
         }catch(error){
-            return errorResponse(error, 400)
+            throw new BadRequestException('Cannot create new account')
         }
 
         return successWithDataResponse(payload, 'Account created', 201)
@@ -60,17 +60,17 @@ export class AccountController {
         
         const targetID:ObjectId = payload._id
 
-        if (!targetID) return errorResponse('ID cannot be empty', 401)
+        if (!targetID) throw new BadRequestException('ID cannot be empty')
 
         //Make sure the payload is not empty/falsy and the email is not used yet
-        if (payload.email && await this.accountService.getAccountByEmail(payload.email)) return errorResponse('Email is used', 401)
+        if (payload.email && await this.accountService.getAccountByEmail(payload.email)) throw new BadRequestException('Email is used')
 
         try{
             await this.accountService.updateAccount(payload)
             return successWithDataResponse(payload, 'Account updated', 204)
         }
         catch(e){
-            return errorResponse(e, 400)
+            throw new BadRequestException('Cannot update account')
         }
 
      }
@@ -86,7 +86,7 @@ export class AccountController {
             return successResponse('Account deleted', 204)
     }
         catch(e){
-            return errorResponse(e, 400)
+            throw new BadRequestException('Cannot delete account')
     }
     
 }
@@ -100,7 +100,7 @@ export class AccountController {
             this.accountService.restoreAccount(targetID)
             return successResponse('Account restored', 201)
         }catch(e){
-            return errorResponse(e, 400)
+            throw new BadRequestException('Cannot restore account')
         }
 }
         
