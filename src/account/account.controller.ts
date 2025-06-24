@@ -1,5 +1,5 @@
 // Commons
-import { Controller, Get, Post, Patch, Delete, Inject, Body, BadRequestException } from "@nestjs/common";
+import { Controller, Get, Post, Patch, Delete, Inject, Body, BadRequestException, ValidationPipe } from "@nestjs/common";
 import { ObjectId } from "typeorm";
 
 // Cache
@@ -16,30 +16,33 @@ import { errorResponse, successResponse, successWithDataResponse } from "src/com
 
 // DTOs
 import { AccountDTO } from "./DTOs/account.dto";
+import { createAccountPipe } from "./account.pipe";
 
-@Controller()
+@Controller('account')
 export class AccountController {
     constructor (private readonly accountService:AccountService, @Inject(CACHE_MANAGER) private readonly cache:Cache){}
 
-    @Post('account')
-    async createAccount(@Body() payload:AccountDTO): Promise<ResponseDto<AccountDTO | null > >{
+    @Post('create')
+    async createAccount(@Body(createAccountPipe) payload:AccountDTO): Promise<ResponseDto<AccountDTO | null > >{
 
-        if (await this.accountService.getAccountByEmail(payload.email)) throw new BadRequestException('Invalid input: Email is used')
+        
+        // Look up for the account with email and role
+        // If any record fit both, email is determined as used
+        const emailRef = await this.accountService.getAccountByEmail(payload.email)
+        if ( emailRef && payload.role === emailRef.role)
+            throw new BadRequestException('Email is used for this subsystem')
 
         try {
             this.accountService.createAccount(payload)
-            // Remove hashed
-            payload.hashed = ''
-
         }catch(error){
             throw new BadRequestException('Cannot create new account')
         }
 
-        return successWithDataResponse(payload, 'Account created', 201)
+        return successResponse('Account created', 201)
 
     }
 
-     @Get('accounts')
+     @Get('all')
      async getAllAccounts(): Promise<ResponseDto<Account | null>>{
 
         const results = await this.accountService.getAllAccount()
@@ -47,7 +50,7 @@ export class AccountController {
         return results ? successWithDataResponse(results, 'Accounts fetched', 201) : errorResponse('Accounts not found', 404)
      }
 
-     @Get('account')
+     @Get('')
      async getAccount(@Body() targetID:ObjectId):Promise<ResponseDto<Account | null>>{
         
         const targetAccount:Account | null = await this.accountService.getAccountByID(targetID)
@@ -55,7 +58,7 @@ export class AccountController {
         return targetAccount ? successWithDataResponse(targetAccount, "Account fetched", 201) : errorResponse('Account not found', 404)
      }
 
-     @Patch('account/update')
+     @Patch('update')
      async updateAccount(@Body() payload:AccountDTO):Promise<ResponseDto<Account | null>> {
         
         const targetID:ObjectId = payload._id
@@ -76,10 +79,10 @@ export class AccountController {
      }
      
      
-     @Delete('account')
+     @Delete('')
      async deleteAccount(@Body() targetID:ObjectId): Promise<ResponseDto<Account | null>> {
 
-        if (!targetID) return errorResponse('ID is invalid', 401)
+        if (!targetID) throw new BadRequestException('ID is not valid')
 
         try {
             this.accountService.deleteAccount(targetID)
@@ -91,7 +94,7 @@ export class AccountController {
     
 }
 
-     @Patch('account/restore')
+     @Patch('restore')
      async restoreAccount (@Body() targetID:ObjectId): Promise<ResponseDto<Account | null >> {
 
         if (!targetID) return errorResponse('ID is invalid', 401)

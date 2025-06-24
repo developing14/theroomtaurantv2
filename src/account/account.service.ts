@@ -12,9 +12,10 @@ import { Account } from './account.entity';
 export class AccountService {
     constructor (@InjectRepository(Account) private readonly AccountRepository:Repository<Account>) {}
 
-    async createAccount(account: Account): Promise<void> {
-        account.hashed = await this.hash(account.hashed)
-        this.AccountRepository.save(account)
+    async createAccount(payload: Account): Promise<void> {
+        payload.hashed = await this.hash(payload.hashed)
+
+        this.AccountRepository.save(payload)
     }
 
     async getAllAccount ():Promise <Account [] | null>{
