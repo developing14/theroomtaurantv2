@@ -39,6 +39,35 @@ export class CreatePayloadDTO {
     lastUpdated: Date
 
     @IsNotEmpty()
-    account: Account
+    account: string
 
+}
+
+export class updatePayloadDTO {
+    _id: ObjectId
+
+    @IsString()
+    name: string
+
+    @IsDate()
+    birth: Date
+    
+    @IsString()
+    address: string
+
+    @IsString()
+    phone: string
+
+    @IsString()
+    email: string
+
+    @IsDate()
+    joiningDate: Date
+
+    @IsString()
+    taxCode: string
+
+    isDeleted: boolean
+
+    lastUpdated: Date
 }

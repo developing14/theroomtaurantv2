@@ -9,7 +9,9 @@ import { Employee } from './employee.entity';
 export class EmployeeService {
     constructor (@InjectRepository(Employee) private readonly EmployeeRepository:Repository<Employee>){}
 
-    async createEmployee(employee:Employee){
+    async createEmployee(accountAttached:any, payload:any){
+        let employee = new Employee(accountAttached, payload)
+        
         this.EmployeeRepository.save(employee)
     }
     
@@ -18,11 +20,11 @@ export class EmployeeService {
         return results ? results : null
     }
 
-    async getEmployeeByID(_id:ObjectId):Promise<Employee | null >{
-            const result = await this.EmployeeRepository
-            .findOne({where: {_id: new ObjectId()}})
-    
-            return result ? result : null
+    async getEmployeeByID(_id: ObjectId):Promise<Employee | null >{
+        const result = await this.EmployeeRepository
+        .findOne({where: {_id: new ObjectId(_id)}})
+
+        return result ? result : null
         }
     
     async getEmployeeByEmail(email: string): Promise<Employee | null> {
@@ -35,7 +37,7 @@ export class EmployeeService {
             return results ? results : null
         }
     
-    async updateEmployee(payload:Employee): Promise<void> {
+    async updateEmployee(payload:any): Promise<void> {
             let Employee = await this.getEmployeeByID(payload._id)
             
             if (Employee) {

@@ -16,7 +16,7 @@ constructor(account: Account, employee?:Employee){
         this.taxCode = employee.taxCode
         this.isDeleted = employee.isDeleted ?? false
         this.lastUpdated = new Date()
-        account = account
+        this.account = account._id
     }
 }
 
@@ -52,6 +52,6 @@ lastUpdated: Date
 
 @OneToOne(()=> Account)
 @JoinColumn()
-account: Account
+account: ObjectId
 
 }
