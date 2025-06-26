@@ -1,6 +1,6 @@
 // Commons
 import { Controller, Get, Post, Patch, Delete, Inject, Body, BadRequestException, ValidationPipe } from "@nestjs/common";
-import { ObjectId } from "typeorm";
+import { ObjectId } from "mongodb";
 
 // Cache
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
@@ -17,6 +17,7 @@ import { errorResponse, successResponse, successWithDataResponse } from "src/com
 // DTOs
 import { AccountDTO } from "./DTOs/account.dto";
 import { createAccountPipe } from "./account.pipe";
+import { IDPipe } from "src/common/pipe/common.pipe";
 
 @Controller('account')
 export class AccountController {
@@ -33,6 +34,7 @@ export class AccountController {
             throw new BadRequestException('Email is used for this subsystem')
 
         try {
+            payload.lastUpdated = new Date()
             this.accountService.createAccount(payload)
         }catch(error){
             throw new BadRequestException('Cannot create new account')
@@ -51,8 +53,7 @@ export class AccountController {
      }
 
      @Get('')
-     async getAccount(@Body() targetID:ObjectId):Promise<ResponseDto<Account | null>>{
-        
+     async getAccount(@Body(IDPipe) targetID:ObjectId):Promise<ResponseDto<Account | null>>{
         const targetAccount:Account | null = await this.accountService.getAccountByID(targetID)
 
         return targetAccount ? successWithDataResponse(targetAccount, "Account fetched", 201) : errorResponse('Account not found', 404)
